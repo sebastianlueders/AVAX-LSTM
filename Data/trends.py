@@ -40,8 +40,12 @@ def update_trend_data(csv_file, keyword):
     trend_data['time'] = pd.to_datetime(trend_data['time'])
     
     # Identify rows with missing trend scores
-    missing_rows = trend_data[trend_data[f'trendScore={keyword}'].isna()]
-
+    trend_score_column = f"trendScore_{keyword}"
+    if trend_score_column not in trend_data.columns:
+        trend_data[trend_score_column] = None  # Initialize with None or NaN
+    # Identify rows with missing trend scores
+    missing_rows = trend_data[trend_data[trend_score_column].isna()]
+    
     if missing_rows.empty:
         print("No missing values to update.")
         return
@@ -56,7 +60,7 @@ def update_trend_data(csv_file, keyword):
             data = fetch_trend_data(keyword, timeframe)
             if not data.empty and keyword in data.columns:
                 trend_score = data[keyword].iloc[0]
-                trend_data.at[idx, f'trendScore={keyword}'] = trend_score
+                trend_data.at[idx, trend_score_column] = trend_score
         except Exception as e:
             print(f"Error fetching data for {date}: {e}")
 
