@@ -36,6 +36,8 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
             # Request data from pytrends
             pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=geo, gprop='')
             batch_data = pytrends.interest_over_time()
+            print(batch_data)
+
             
             if not batch_data.empty:
                 all_data.append(batch_data)
