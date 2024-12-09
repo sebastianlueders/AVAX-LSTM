@@ -2,6 +2,10 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 from pytrends.request import TrendReq
+import time  # For the timer
+import random  # For generating random intervals
+
+
 
 # List to store missing timeframes
 missingData = []
@@ -38,21 +42,32 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
         start_date = batch_end
 
     # Retry for missing data
+    # Retry for missing data
     while missingData:
-        retry_timeframe = missingData.pop(0)
-        print(f"Retrying for missing timeframe: {retry_timeframe}")
-        
-        try:
-            pytrends.build_payload([keyword], cat=0, timeframe=retry_timeframe, geo=geo, gprop='')
-            retry_data = pytrends.interest_over_time()
+        current_round = missingData.copy()  # Copy current list to avoid modifying while iterating
+        missingData.clear()  # Clear to only re-add failures from this round
+
+        for retry_timeframe in current_round:
+            print(f"Retrying for missing timeframe: {retry_timeframe}")
             
-            if not retry_data.empty:
-                all_data.append(retry_data)
-            else:
-                print(f"No data available for timeframe {retry_timeframe}")
-        except Exception as e:
-            print(f"Failed again for timeframe {retry_timeframe}: {e}")
-            missingData.append(retry_timeframe)  # Re-add to the missing list to retry later
+            try:
+                pytrends.build_payload([keyword], cat=0, timeframe=retry_timeframe, geo=geo, gprop='')
+                retry_data = pytrends.interest_over_time()
+                
+                if not retry_data.empty:
+                    all_data.append(retry_data)
+                else:
+                    print(f"No data available for timeframe {retry_timeframe}")
+            except Exception as e:
+                print(f"Failed again for timeframe {retry_timeframe}: {e}")
+                missingData.append(retry_timeframe)  # Re-add to the missing list to retry later
+        
+        # Add a random delay of 0 to 10 minutes after one round of retries
+        if missingData:
+            delay_minutes = random.randint(0, 10)
+            print(f"Delaying next retry round by {delay_minutes} minutes...")
+            time.sleep(delay_minutes * 60)
+    
 
     # Combine all batches into a single DataFrame
     if all_data:
