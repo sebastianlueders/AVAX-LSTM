@@ -7,30 +7,25 @@ import random
 import requests
 
 # Proxy configuration
-username = 'spyhpi3or0'
+username = 'user-spyhpi3or0-sessionduration-60'
 password = 'K50vszVG8kyy=tExo3'
-proxy_host = 'gate.smartproxy.com'
-proxy_port = '7000'
-proxy = f"https://{username}:{password}@{proxy_host}:{proxy_port}"
-proxies = {
-    'http': proxy,
-    'https': proxy
-}
+base_proxy_url = f"https://{username}:{password}@gate.smartproxy.com"
+proxy_list = [f"{base_proxy_url}:{port}" for port in range(10001, 10021)]  # Ports from 10001 to 10020
 
 # Function to test proxy (optional)
-def test_proxy():
+def test_proxy(proxy):
     try:
-        test_url = 'https://ip.smartproxy.com/json'
-        result = requests.get(test_url, proxies=proxies)
-        print("Proxy test successful:", result.json())
+        test_url = "https://ip.smartproxy.com/json"
+        result = requests.get(test_url, proxies={'https': proxy})
+        print(f"Proxy test successful: {proxy}, Response: {result.json()}")
     except Exception as e:
-        print("Proxy test failed:", e)
+        print(f"Proxy test failed: {proxy}, Error: {e}")
 
 # List to store missing timeframes
 missingData = []
 
 def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output'):
-    pytrends = TrendReq(hl='en-US', tz=360, proxies=proxies)
+    pytrends = TrendReq(hl='en-US', tz=360, proxies=proxy_list)
     start_date = datetime(2020, 12, 18)
     end_date = datetime.now()
     delta = timedelta(days=7)
@@ -52,7 +47,7 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
             missingData.append(timeframe)
             print(f"Error fetching data for timeframe {timeframe}: {e}")
         
-        start_date = batch_end
+        start_date = batch_end + timedelta(days=1)  # Prevent overlap
 
     retry_count = 0
     max_retries = 5
@@ -83,6 +78,9 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
         
         retry_count += 1
 
+    if retry_count >= max_retries:
+        print("Max retries reached. Exiting...")
+
     if all_data:
         combined_data = pd.concat(all_data).reset_index()
         combined_data = combined_data.rename(columns={keyword: 'search_count', 'date': 'time_interval'})
@@ -99,6 +97,9 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
         print("No data retrieved for the given keyword.")
 
 if __name__ == "__main__":
-    test_proxy()
+    # Test all proxies before starting the main script
+    for proxy in proxy_list:
+        test_proxy(proxy)
+    
     keyword_to_search = "Bitcoin"
     fetch_hourly_data_in_batches(keyword=keyword_to_search, geo="", output_folder="pytrends_output")
