@@ -3,64 +3,73 @@ from datetime import datetime, timedelta
 import pandas as pd
 from pytrends.request import TrendReq
 
+# List to store missing timeframes
+missingData = []
+
 def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output'):
     """
-    Fetches hourly search data for a given keyword in weekly batches and saves it as a CSV.
-
-    Parameters:
-    - keyword (str): The search keyword.
-    - geo (str): Geographic location (default is worldwide). Use region codes like 'US' for United States.
-    - output_folder (str): The folder to save the output CSV.
+    Fetches hourly search data for a given keyword in weekly batches and retries missing timeframes.
     """
-    # Initialize pytrends
     pytrends = TrendReq(hl='en-US', tz=360)
-    
+
     # Define the date range for the query
-    start_date = datetime(2017, 12, 1)  # Start date (6 years ago)
-    end_date = datetime.now()  # Current date
-    delta = timedelta(days=7)  # Weekly intervals
-    
-    all_data = []  # To store results from each batch
-    
+    start_date = datetime(2020, 12, 18)
+    end_date = datetime.now()
+    delta = timedelta(days=7)
+    all_data = []
+
     # Iterate through the date range in weekly batches
     while start_date < end_date:
         batch_start = start_date
         batch_end = min(start_date + delta, end_date)
-        
-        # Define the timeframe for the current batch
         timeframe = f"{batch_start.strftime('%Y-%m-%d')} {batch_end.strftime('%Y-%m-%d')}"
-        
         print(f"Fetching data for timeframe: {timeframe}")
         
         try:
-            # Request data from pytrends
             pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=geo, gprop='')
             batch_data = pytrends.interest_over_time()
-            print(batch_data)
-
             
             if not batch_data.empty:
                 all_data.append(batch_data)
         except Exception as e:
+            missingData.append(timeframe)
             print(f"Error fetching data for timeframe {timeframe}: {e}")
         
-        # Move to the next batch
         start_date = batch_end
-    
+
+    # Retry for missing data
+    while missingData:
+        retry_timeframe = missingData.pop(0)
+        print(f"Retrying for missing timeframe: {retry_timeframe}")
+        
+        try:
+            pytrends.build_payload([keyword], cat=0, timeframe=retry_timeframe, geo=geo, gprop='')
+            retry_data = pytrends.interest_over_time()
+            
+            if not retry_data.empty:
+                all_data.append(retry_data)
+            else:
+                print(f"No data available for timeframe {retry_timeframe}")
+        except Exception as e:
+            print(f"Failed again for timeframe {retry_timeframe}: {e}")
+            missingData.append(retry_timeframe)  # Re-add to the missing list to retry later
+
     # Combine all batches into a single DataFrame
     if all_data:
         combined_data = pd.concat(all_data)
         combined_data = combined_data.reset_index()
         combined_data = combined_data.rename(columns={keyword: 'search_count', 'date': 'time_interval'})
         combined_data = combined_data[['time_interval', 'search_count']]
-        
+
+        # Sort by the 'time_interval' column
+        combined_data['time_interval'] = pd.to_datetime(combined_data['time_interval'])  # Ensure it's in datetime format
+        combined_data = combined_data.sort_values(by='time_interval')
+
         # Ensure the output folder exists
         os.makedirs(output_folder, exist_ok=True)
-        
-        # Save the combined data to a CSV file
         output_file = os.path.join(output_folder, f"{keyword}_pytrends.csv")
         combined_data.to_csv(output_file, index=False)
-        
+
         print(f"Hourly data saved to {output_file}")
     else:
         print("No data retrieved for the given keyword.")
