@@ -1,6 +1,5 @@
 import csv
 from serpapi import GoogleSearch
-import pandas as pd
 from datetime import datetime, timedelta
 
 # Function to calculate date ranges in 8-month cycles
@@ -32,7 +31,7 @@ def fetch_data_for_date_range(api_key, start_date, end_date, query):
     # Extract timeline data
     timeline_data = results.get("interest_over_time", {}).get("timeline_data", [])
     extracted_data = [
-        {"date": item["date"], "extracted_value": item["values"][0]["extracted_value"]}
+        {"date": item["date"], query: item["values"][0]["extracted_value"]}  # Use query as key
         for item in timeline_data
     ]
     return extracted_data
@@ -40,10 +39,9 @@ def fetch_data_for_date_range(api_key, start_date, end_date, query):
 # Main function
 def main(keyword):
     # API key and query
-    api_key = "1112567fdfb55cd9ed3e23d028cb3e8fec10b7851cc378c85cf915dd6e4c2b8c"  # Replace with your API key
+    api_key = "e116bd031743e962ab9f99f6442dedad7cfdc0de29320439efd1afbc490e5d02"  # Replace with your API key
     
     query = keyword
-
     # Define date range
     start_date = datetime.strptime("2020-09-19", "%Y-%m-%d")
     end_date = datetime.strptime("2024-12-06", "%Y-%m-%d")
@@ -66,13 +64,11 @@ def main(keyword):
         with open(output_file, mode="a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             for row in data:
-                writer.writerow([row["date"], row[f"{query}"]])
+                writer.writerow([row["date"], row[query]])  # Use query as key
 
     print(f"Data has been saved to {output_file}")
 
 # Run the script
 if __name__ == "__main__":
-    query = ["query1", "query2"] 
-    for q in query:
-        main(q)  # Call the main function with each query
-
+    query = "bullish"  # Replace with your query if needed
+    main(query)  # Call the main function with each query
