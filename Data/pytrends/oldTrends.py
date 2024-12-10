@@ -17,7 +17,7 @@ def fetch_hourly_data_in_batches(keyword, geo='', output_folder='pytrends_output
     
     # Define the date range for the query
     start_date = datetime(2017, 12, 1)  # Start date (6 years ago)
-    end_date = datetime.now()  # Current date 
+    end_date = datetime.now()  # Current date
     delta = timedelta(days=7)  # Weekly intervals
     
     all_data = []  # To store results from each batch
