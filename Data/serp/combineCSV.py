@@ -11,3 +11,4 @@ merged_df = pd.merge(bitcoin_df, ethereum_df, on='Date', how='outer')
 merged_df.to_csv('combined_data.csv', index=False)
 
 print("CSV files have been combined and saved to 'combined_data.csv'")
+
