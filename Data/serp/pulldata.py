@@ -70,5 +70,5 @@ def main(keyword):
 
 # Run the script
 if __name__ == "__main__":
-    query = "bullish"  # Replace with your query if needed
+    query = "buy Avalanche"  # Replace with your query if needed
     main(query)  # Call the main function with each query
