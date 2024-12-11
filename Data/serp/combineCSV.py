@@ -1,12 +1,15 @@
 import pandas as pd
 
-# Read the CSV files
-combined_df = pd.read_csv('merged_combined_data.csv')
-target_df = pd.read_csv('Cryptocurrency fraud_trends.csv')
+# Read the CSV files using relative paths
+combined_df = pd.read_csv('Data/final-dataset.csv')
+target_df = pd.read_csv('Data/merged_combined_data.csv')  # Assuming this file is in the same folder as the script
 
 # Strip leading/trailing spaces from column names
 combined_df.columns = combined_df.columns.str.strip()
 target_df.columns = target_df.columns.str.strip()
+
+# Standardize the date column names
+combined_df.rename(columns={'Date': 'date'}, inplace=True)
 
 # Convert 'date' columns to datetime format
 combined_df['date'] = pd.to_datetime(combined_df['date'], errors='coerce')
@@ -40,16 +43,5 @@ if not misaligned_rows.empty:
     print(misaligned_rows)
 
 # Save the merged dataframe to a new CSV file
-merged_df.to_csv('merged_combined_data.csv', index=False)
+merged_df.to_csv('merged_combined_dataThree.csv', index=False)
 print("CSV files have been combined and saved to 'merged_combined_dataThree.csv'")
-
-# Optional: Inspect rows in a specific date range to validate alignment
-date_range = pd.date_range(start='2023-05-01', end='2023-05-10')
-print("Combined_df rows in date range:")
-print(combined_df[combined_df['date'].isin(date_range)])
-
-print("Target_df rows in date range:")
-print(target_df[target_df['date'].isin(date_range)])
-
-print("Merged_df rows in date range:")
-print(merged_df[merged_df['date'].isin(date_range)])
