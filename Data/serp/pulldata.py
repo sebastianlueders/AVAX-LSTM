@@ -39,7 +39,7 @@ def fetch_data_for_date_range(api_key, start_date, end_date, query):
 # Main function
 def main(keyword):
     # API key and query
-    api_key = "62de9070c09e434a967c40a8b3e159a364e4ad500b2c7765b44dd9c65f35c272"  # Replace with your API key
+    api_key = "7c2408f7730d4c7af874b5e7563c8d877c6af662cb6d236d80e6484f49913bf1"  # Replace with your API key
     
     query = keyword
     # Define date range
@@ -70,5 +70,5 @@ def main(keyword):
 
 # Run the script
 if __name__ == "__main__":
-    query = "How to buy Cryptocurrency"  # Replace with your query if needed
+    query = "crypto to buy now"  # Replace with your query if needed
     main(query)  # Call the main function with each query
