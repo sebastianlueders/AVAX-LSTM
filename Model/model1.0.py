@@ -18,7 +18,7 @@ seed_value = 42
 np.random.seed(seed_value)
 
 # Load dataset
-df = pd.read_csv('Model/merged_combined_final.csv')
+df = pd.read_csv('merged_combined_final.csv')
 
 # Drop specified columns
 columns_to_drop = [
