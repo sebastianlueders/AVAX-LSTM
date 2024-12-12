@@ -5,8 +5,17 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error
 from tensorflow.keras.models import Sequential
+import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+import matplotlib.dates as mdates
 from tensorflow.keras import layers
+from sklearn.metrics import f1_score
+import random
+
+
+# Set random seeds for reproducibility
+seed_value = 42
+np.random.seed(seed_value)
 
 # Load dataset
 df = pd.read_csv('Model/merged_combined_final.csv')
@@ -142,17 +151,52 @@ model = Sequential([
 
 model.compile(loss='mse', optimizer=Adam(learning_rate=0.001), metrics=['mean_absolute_error'])
 
-model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=500)
+model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=50)
 
 # Predict and evaluate on the original scale
 predictions = model.predict(X_test)
 
-plt.plot(dates_test, y_test)
-plt.plot(dates_test, predictions)
+dates_test = pd.to_datetime(dates_test)
 
-plt.legend(['Actual', 'Predicted'])
+plt.figure(figsize=(12, 6))
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=14))  # Adjust tick frequency
+
+plt.plot(dates_test, y_test, label='Actual')
+plt.plot(dates_test, predictions, label='Predicted')
+plt.gcf().autofmt_xdate()  # Rotate and format dates
+plt.legend()
+plt.tight_layout()
 plt.show()
 
 mae_original_scale = mean_absolute_error(y_test, predictions)
 
 print(f"MAE on original scale: {mae_original_scale}")
+
+# Initialize variables
+TP, TN, FP, FN = 0, 0, 0, 0
+
+for i in range(1, int(0.2 * len(y_test))):
+    # Determine binary ground truth for y_test
+    y_test_binary = y_test[i] > y_test[i - 1]
+    # Determine binary predictions
+    binary_predictions = predictions[i] > y_test[i - 1]
+    
+    # Update
+    if y_test_binary and binary_predictions:
+        TP += 1  # True Positive
+    elif not y_test_binary and binary_predictions:
+        FP += 1  # False Positive
+    elif y_test_binary and not binary_predictions:
+        FN += 1  # False Negative
+    else:  
+        TN += 1  # True Negative
+
+# Calculate Precision and Recall
+precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+
+# Calculate F1 Score
+f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+print(f"Precision: {precision:.2f}, Recall: {recall:.2f}, F1 Score: {f1:.2f}")
