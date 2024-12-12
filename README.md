@@ -1,5 +1,8 @@
 # 379-Final-Project
+
+Interpreters that are built to use the gpu will do better with this model.
 libraries: pandas, datetime, matplotlib, scikit-learn, tensorflow
+
 Step 1: Ensure Python is installed. 
 
 Step 2: Ensure tensorflow is installed
