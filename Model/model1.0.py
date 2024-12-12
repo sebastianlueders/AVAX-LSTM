@@ -124,18 +124,18 @@ def windowed_df_to_date_X_y(windowed_dataframe, n=7):
 dates, X, y = windowed_df_to_date_X_y(windowed_df)
 
 # Train/Validation/Test Split
+q_70 = int(len(dates) * 0.7)
 q_80 = int(len(dates) * 0.8)
-q_90 = int(len(dates) * 0.9)
 
-dates_train, X_train, y_train = dates[:q_80], X[:q_80], y[:q_80]
-dates_val, X_val, y_val = dates[q_80:q_90], X[q_80:q_90], y[q_80:q_90]
-dates_test, X_test, y_test = dates[q_90:], X[q_90:], y[q_90:]
+dates_train, X_train, y_train = dates[:q_70], X[:q_70], y[:q_70]
+dates_val, X_val, y_val = dates[q_70:q_80], X[q_70:q_80], y[q_70:q_80]
+dates_test, X_test, y_test = dates[q_80:], X[q_80:], y[q_80:]
 
 # Build and Train LSTM Model
 model = Sequential([
     layers.Input((7, X_train.shape[2])),
-    layers.LSTM(500),
-    layers.Dense(64, activation='relu'),
+    layers.LSTM(64),
+    layers.Dense(32, activation='relu'),
     layers.Dense(64, activation='relu'),
     layers.Dense(1)
 ])
@@ -146,6 +146,13 @@ model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=500)
 
 # Predict and evaluate on the original scale
 predictions = model.predict(X_test)
+
+plt.plot(dates_test, y_test)
+plt.plot(dates_test, predictions)
+
+plt.legend(['Acutal', 'Predicted'])
+plt.show()
+
 mae_original_scale = mean_absolute_error(y_test, predictions)
 
 print(f"MAE on original scale: {mae_original_scale}")
