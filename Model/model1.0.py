@@ -150,7 +150,7 @@ predictions = model.predict(X_test)
 plt.plot(dates_test, y_test)
 plt.plot(dates_test, predictions)
 
-plt.legend(['Acutal', 'Predicted'])
+plt.legend(['Actual', 'Predicted'])
 plt.show()
 
 mae_original_scale = mean_absolute_error(y_test, predictions)
