@@ -1,4 +1,4 @@
-# 379-Final-Project
+# AVAX-LSTM-Project
 
 Interpreters that are built to use the gpu will do better with this model.
 libraries: pandas, datetime, matplotlib, scikit-learn, tensorflow
